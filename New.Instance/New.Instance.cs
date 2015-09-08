@@ -20,7 +20,8 @@ namespace New.Instance
 
 			if (type.IsEnum) {
 				//return () => default(T);
-				return Expression.Lambda<Func<T>>(Expression.New(typeof(T))).Compile(); // fastest
+				return Expression.Lambda<Func<T>>(Expression.Constant(default(T))).Compile(); // fastest
+				//return Expression.Lambda<Func<T>>(Expression.New(typeof(T))).Compile();
 				//return GetDynamicMethod(type, type, g => g.Emit(OpCodes.Ldc_I4_0));
 			}
 
