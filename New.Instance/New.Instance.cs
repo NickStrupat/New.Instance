@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Reflection.Emit;
 
 namespace New.Instance
@@ -13,20 +14,41 @@ namespace New.Instance
 			if (type.IsAbstract)
 				throw new InvalidOperationException($"Type `{type.FullName}` is an abstract class and therefore cannot be instantiated.");
 
-			if (type.IsValueType)
-				return () => default(T);
+			if (type.IsEnum) {
+				//return () => default(T);
+				return Expression.Lambda<Func<T>>(Expression.New(typeof(T))).Compile(); // fastest
+				//return GetDynamicMethod(type, type, g => g.Emit(OpCodes.Ldc_I4_0));
+			}
 
-			if (type == typeof(String))
-				return GetDynamicMethod(type, type, g => g.Emit(OpCodes.Ldsfld, type.GetField(nameof(String.Empty))));
+			if (type.IsValueType) {
+				//return () => default(T);
+				return Expression.Lambda<Func<T>>(Expression.New(typeof (T))).Compile(); // fastest
+				//return GetDynamicMethod(type, type,
+				//	g => {
+				//		g.DeclareLocal(type);
+				//		g.Emit(OpCodes.Ldloca_S, 0);
+				//		g.Emit(OpCodes.Initobj, type);
+				//		g.Emit(OpCodes.Ldloc_0);
+				//	});
+			}
+
+			if (type == typeof (String)) {
+				//return () => (T) (Object) String.Empty;
+				return Expression.Lambda<Func<T>>(Expression.Constant(String.Empty)).Compile(); // fastest
+				//return GetDynamicMethod(type, type, g => g.Emit(OpCodes.Ldsfld, type.GetField(nameof(String.Empty))));
+			}
 
 			if (type.IsArray) {
 				var elementType = type.GetElementType();
-				return GetDynamicMethod(type, elementType, g => { g.Emit(OpCodes.Ldc_I4_0); g.Emit(OpCodes.Newarr, elementType); });
+				return Expression.Lambda<Func<T>>(Expression.NewArrayInit(elementType)).Compile(); // fastest
+				//return GetDynamicMethod(type, elementType, g => { g.Emit(OpCodes.Ldc_I4_0); g.Emit(OpCodes.Newarr, elementType); });
 			}
 
 			var defaultConstructor = type.GetConstructor(Type.EmptyTypes);
-			if (defaultConstructor != null)
-				return GetDynamicMethod(type, type, g => g.Emit(OpCodes.Newobj, defaultConstructor));
+			if (defaultConstructor != null) {
+				//return Expression.Lambda<Func<T>>(Expression.New(typeof(T))).Compile();
+				return GetDynamicMethod(type, type, g => g.Emit(OpCodes.Newobj, defaultConstructor)); // fastest
+			}
 
 			throw new InvalidOperationException($"Type `{type.FullName}` has no default constructor.");
 		}
