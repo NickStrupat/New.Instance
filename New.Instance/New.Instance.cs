@@ -14,6 +14,10 @@ namespace New.Instance
 			if (type.IsAbstract)
 				throw new InvalidOperationException($"Type `{type.FullName}` is an abstract class and therefore cannot be instantiated.");
 
+			if (type.IsPrimitive) {
+				return Expression.Lambda<Func<T>>(Expression.Constant(default(T))).Compile();
+			}
+
 			if (type.IsEnum) {
 				//return () => default(T);
 				return Expression.Lambda<Func<T>>(Expression.New(typeof(T))).Compile(); // fastest
@@ -32,7 +36,7 @@ namespace New.Instance
 				//	});
 			}
 
-			if (type == typeof (String)) {
+			if (type == typeof(String)) {
 				//return () => (T) (Object) String.Empty;
 				return Expression.Lambda<Func<T>>(Expression.Constant(String.Empty)).Compile(); // fastest
 				//return GetDynamicMethod(type, type, g => g.Emit(OpCodes.Ldsfld, type.GetField(nameof(String.Empty))));
