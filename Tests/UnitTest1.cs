@@ -18,6 +18,13 @@ namespace Tests {
 	}
 
 	class Foo {}
+
+	class Woo {
+		private static Int32 count;
+		public Woo() {
+			++count;
+		}
+	}
 	enum Bar {}
 
 	[TestClass]
@@ -303,6 +310,31 @@ namespace Tests {
 				instance = New<T>.Instance();
 			sw.Stop();
 			Console.WriteLine(sw.ElapsedTicks + " " + typeof(T).Name);
+		}
+
+
+
+
+		[TestMethod]
+		public void ObjectNewInstancePerformance() {
+			var instance = New<Object>.Instance();
+			var sw = new Stopwatch();
+			sw.Start();
+			for (var i = 0; i != limit; i++)
+				instance = New<Object>.Instance();
+			sw.Stop();
+			Console.WriteLine(sw.ElapsedTicks);
+		}
+
+		[TestMethod]
+		public void WooNewInstancePerformance() {
+			var instance = New<Woo>.Instance();
+			var sw = new Stopwatch();
+			sw.Start();
+			for (var i = 0; i != limit; i++)
+				instance = New<Woo>.Instance();
+			sw.Stop();
+			Console.WriteLine(sw.ElapsedTicks);
 		}
 
 

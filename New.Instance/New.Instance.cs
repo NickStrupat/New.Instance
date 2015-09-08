@@ -43,6 +43,12 @@ namespace New.Instance
 				//return GetDynamicMethod(type, type, g => g.Emit(OpCodes.Ldsfld, type.GetField(nameof(String.Empty))));
 			}
 
+			if (type == typeof(Object)) {
+				//return () => (T) new Object();
+				return Expression.Lambda<Func<T>>(Expression.New(type)).Compile(); // fastest
+				//return GetDynamicMethod(type, type, g => g.Emit(OpCodes.Newobj, type.GetConstructor(Type.EmptyTypes)));
+			}
+
 			if (type.IsArray) {
 				var elementType = type.GetElementType();
 				return Expression.Lambda<Func<T>>(Expression.NewArrayInit(elementType)).Compile(); // fastest
