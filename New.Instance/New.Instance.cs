@@ -10,9 +10,9 @@ namespace New.Instance
 		private static Func<T> GetInstanceFactory() {
 			var type = typeof(T);
 			if (type.IsInterface)
-				throw new InvalidOperationException($"Type `{type.FullName}` is an interface and therefore cannot be instantiated.");
+				throw new InvalidOperationException($"`{type.FullName}` is an interface and therefore cannot be instantiated.");
 			if (type.IsAbstract)
-				throw new InvalidOperationException($"Type `{type.FullName}` is an abstract class and therefore cannot be instantiated.");
+				throw new InvalidOperationException($"`{type.FullName}` is an abstract class and therefore cannot be instantiated.");
 
 			if (type.IsPrimitive) {
 				return Expression.Lambda<Func<T>>(Expression.Constant(default(T))).Compile();
@@ -25,9 +25,15 @@ namespace New.Instance
 				//return GetDynamicMethod(type, type, g => g.Emit(OpCodes.Ldc_I4_0));
 			}
 
+			var typeIsNullable = Nullable.GetUnderlyingType(type) != null;
+			if (typeIsNullable) {
+				return Expression.Lambda<Func<T>>(Expression.Constant(default(T), type)).Compile();
+			}
+
 			if (type.IsValueType) {
 				//return () => default(T);
-				return Expression.Lambda<Func<T>>(Expression.New(type)).Compile(); // fastest
+				return Expression.Lambda<Func<T>>(Expression.Constant(default(T), type)).Compile(); // fastest
+				//return Expression.Lambda<Func<T>>(Expression.New(type)).Compile();
 				//return GetDynamicMethod(type, type,
 				//	g => {
 				//		g.DeclareLocal(type);
@@ -55,13 +61,16 @@ namespace New.Instance
 				//return GetDynamicMethod(type, elementType, g => { g.Emit(OpCodes.Ldc_I4_0); g.Emit(OpCodes.Newarr, elementType); });
 			}
 
-			var defaultConstructor = type.GetConstructor(Type.EmptyTypes);
-			if (defaultConstructor != null) {
-				//return Expression.Lambda<Func<T>>(Expression.New(type)).Compile();
-				return GetDynamicMethod(type, type, g => g.Emit(OpCodes.Newobj, defaultConstructor)); // fastest
+			if (type.IsClass) {
+				var defaultConstructor = type.GetConstructor(Type.EmptyTypes);
+				if (defaultConstructor != null) {
+					//return Expression.Lambda<Func<T>>(Expression.New(type)).Compile();
+					return GetDynamicMethod(type, type, g => g.Emit(OpCodes.Newobj, defaultConstructor)); // fastest
+				}
+				throw new InvalidOperationException($"`{type.FullName}` has no default constructor.");
 			}
 
-			throw new InvalidOperationException($"Type `{type.FullName}` has no default constructor.");
+			throw new InvalidProgramException($"`{type.FullName}` instantiation is not supported.");
 		}
 
 		private static Func<T> GetDynamicMethod(Type type, Type owner, Action<ILGenerator> emitNewInstanceAction) {

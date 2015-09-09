@@ -17,7 +17,21 @@ namespace Tests {
 		}
 	}
 
-	class Foo {}
+	struct Baz {
+		private String name;
+		private DateTime when;
+		public Decimal money;
+		public Decimal money2;
+		public Decimal money3;
+	}
+
+	class Foo {
+		private String name;
+		private DateTime when;
+		public Decimal money;
+		public Decimal money2;
+		public Decimal money3;
+	}
 
 	class Woo {
 		private static Int32 count;
@@ -139,6 +153,7 @@ namespace Tests {
 		[TestMethod]
 		public void BarNewInstancePerformance() {
 			var instance = New<Bar>.Instance();
+			var instanceFunc = New<Bar>.Instance;
 			var sw = new Stopwatch();
 			sw.Start();
 			for (var i = 0; i != limit; i++)
@@ -229,6 +244,17 @@ namespace Tests {
 			sw.Start();
 			for (var i = 0; i != limit; i++)
 				instance = New<String[]>.Instance();
+			sw.Stop();
+			Console.WriteLine(sw.ElapsedTicks);
+		}
+
+		[TestMethod]
+		public void StringSquareArrayNewInstancePerformance() {
+			var instance = New<String[,]>.Instance();
+			var sw = new Stopwatch();
+			sw.Start();
+			for (var i = 0; i != limit; i++)
+				instance = New<String[,]>.Instance();
 			sw.Stop();
 			Console.WriteLine(sw.ElapsedTicks);
 		}
@@ -333,6 +359,30 @@ namespace Tests {
 			sw.Start();
 			for (var i = 0; i != limit; i++)
 				instance = New<Woo>.Instance();
+			sw.Stop();
+			Console.WriteLine(sw.ElapsedTicks);
+		}
+
+
+
+		[TestMethod]
+		public void BazNewInstancePerformance() {
+			var instance = New<Baz>.Instance();
+			var sw = new Stopwatch();
+			sw.Start();
+			for (var i = 0; i != limit; i++)
+				instance = New<Baz>.Instance();
+			sw.Stop();
+			Console.WriteLine(sw.ElapsedTicks);
+		}
+
+		[TestMethod]
+		public void NullableBazNewInstancePerformance() {
+			var instance = New<Baz?>.Instance();
+			var sw = new Stopwatch();
+			sw.Start();
+			for (var i = 0; i != limit; i++)
+				instance = New<Baz?>.Instance();
 			sw.Stop();
 			Console.WriteLine(sw.ElapsedTicks);
 		}
