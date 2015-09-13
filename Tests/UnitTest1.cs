@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using New.Instance;
+using NewInstance;
 
 namespace Tests {
 	static class New2<T> {

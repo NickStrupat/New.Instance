@@ -2,8 +2,7 @@
 using System.Linq.Expressions;
 using System.Reflection.Emit;
 
-namespace New.Instance
-{
+namespace NewInstance {
 	public static class New<T> {
 		public static readonly Func<T> Instance = GetInstanceFactory();
 
